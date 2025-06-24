@@ -47,8 +47,7 @@ export async function startWebhookDispatcher() {
 
     console.log("[AMQP] All consumers started.");
   } catch (error) {
-    console.error("[Dispatcher] Startup failed:", error);
-    setTimeout(startWebhookDispatcher, 5000);
+    throw error;
   }
 }
 
@@ -62,13 +61,12 @@ async function setupQueueAndConsumer(channel: any, category: string) {
 
     await channel.consume(
       queueName,
+
       async (msg: any | null) => {
         if (!msg) return;
 
         try {
           const content = msg.content.toString();
-
-          console.log(`[Consumer:${category}] Message received:`, content);
 
           const { company_id, event, data } = JSON.parse(content);
 
@@ -77,7 +75,6 @@ async function setupQueueAndConsumer(channel: any, category: string) {
           for (const webhook of webhooks) {
             const operationsMap = webhook?.events?.[0]?.operations;
 
-            // Skip if operationsMap is not an object
             if (
               !operationsMap ||
               typeof operationsMap !== "object" ||
@@ -90,14 +87,21 @@ async function setupQueueAndConsumer(channel: any, category: string) {
             const include_data =
               (webhook.include_data && webhook.include_data.length) || false;
 
-            const payload = await prepareWebhookData(event, data);
+            const payload = await prepareWebhookData(
+              event,
+              data,
+              include_data,
+              webhook
+            );
+
+            // let payload = {};
 
             await processConsumer(webhook, payload);
           }
 
           channel.ack(msg);
         } catch (err) {
-          console.error(`[Consumer:${category}] Processing failed:`, err);
+          throw err;
         }
       },
       { noAck: false }
@@ -114,12 +118,18 @@ async function setupQueueAndConsumer(channel: any, category: string) {
 
 async function processConsumer(webhook: IWebhook, payload: any) {
   try {
-    await axios.post(webhook.url, payload, {
+    const resp = await axios.post(webhook.url, payload, {
       headers: { Authorization: webhook.verifier_token || "" },
       timeout: 5000,
     });
 
-    console.log(`[Webhook] Dispatched to ${webhook.url} successfully`);
+    if (![200, 201].includes(resp.status)) {
+      throw new BadRequestException(
+        `[Webhook] Failed to deliver to ${webhook.url}: ${resp.status}`
+      );
+    }
+
+    console.log(`[Webhook] delivered to ${webhook.url} successfully`);
   } catch (err) {
     throw err;
   }
