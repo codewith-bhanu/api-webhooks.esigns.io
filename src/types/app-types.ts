@@ -8,3 +8,9 @@ export type SuccessResp = {
 };
 
 export type WebhookEventsType = (typeof WEBHOOK_EVENTS)[number];
+
+export type WebhookMessage = {
+  event: WebhookEventsType;
+  company_id: string;
+  data: any;
+};

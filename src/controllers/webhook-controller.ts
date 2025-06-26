@@ -4,6 +4,7 @@ import { publishToExchange } from "../services/webhooks/webhook-service";
 import { successResp } from "../utils/resp-utils";
 import BadRequestException from "../exceptions/badRequestException";
 import { DATA_PUBLISHED } from "../constants/app-messages";
+import type { WebhookMessage } from "../types/app-types";
 
 export async function processWebhookEvent(c: Context) {
   try {
@@ -21,7 +22,7 @@ export async function processWebhookEvent(c: Context) {
 
     const routingKey = `${eventCategory}.${event}`;
 
-    const message: any = {
+    const message: WebhookMessage = {
       event,
       company_id,
       data,

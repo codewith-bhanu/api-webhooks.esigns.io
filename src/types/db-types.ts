@@ -1,12 +1,9 @@
 import { Types } from "mongoose";
 
-export interface IWebhookEvent {
-  entity_id?: Types.ObjectId;
-  type?: string;
-  operations?: {
-    [category: string]: string[];
-  };
-}
+export type WebhookEventCategory =
+  | "document_events"
+  | "template_events"
+  | "recipient_events";
 
 export interface IWebhook {
   _id?: Types.ObjectId;
@@ -15,7 +12,7 @@ export interface IWebhook {
   verifier_token?: string;
   company_id: Types.ObjectId;
   app_id?: Types.ObjectId;
-  events: IWebhookEvent[];
+  events: Partial<Record<WebhookEventCategory, string[]>>;
   enable_include_data?: boolean;
   include_data?: string[];
   created_at?: Date;

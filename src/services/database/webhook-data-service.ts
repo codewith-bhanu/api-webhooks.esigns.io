@@ -1,17 +1,17 @@
-import { WebhookModel } from "../../db/models/webhooks";
+import { WebhooksModel } from "../../db/models/webhooks";
 
 export async function getWebhooksByCompanyId(company_id: any) {
-  return await WebhookModel.find({ company_id }).lean();
+  return await WebhooksModel.find({ company_id }).lean();
 }
 
 export async function getWebhookById(id: any) {
-  return await WebhookModel.findById(id).lean();
+  return await WebhooksModel.findById(id).lean();
 }
 
 export async function saveWebhookData(data: any) {
-  return await WebhookModel.create(data);
+  return await WebhooksModel.create(data);
 }
 
 export async function getWebhooksByQuery(query: any) {
-  return await WebhookModel.find(query).lean();
+  return await WebhooksModel.find(query).lean();
 }

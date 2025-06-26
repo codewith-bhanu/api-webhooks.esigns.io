@@ -4,11 +4,7 @@ import BadRequestException from "../../exceptions/badRequestException";
 import { getWebhooksByQuery } from "../database/webhook-data-service";
 import { prepareWebhookData } from "../../helpers/webhooks-helper";
 import type { IWebhook } from "../../types/db-types";
-
-export interface WebhookMessage {
-  data: Record<string, any>;
-  company_id: string;
-}
+import type { WebhookMessage } from "../../types/app-types";
 
 export function publishToExchange(routingKey: string, message: WebhookMessage) {
   const channel = getChannel();
@@ -73,28 +69,28 @@ async function setupQueueAndConsumer(channel: any, category: string) {
           const webhooks: any[] = await getWebhooksByQuery({ company_id });
 
           for (const webhook of webhooks) {
-            const operationsMap = webhook?.events?.[0]?.operations;
+            const operationsMap = webhook?.events;
+
+            if (!operationsMap || typeof operationsMap !== "object") continue;
+
+            const categoryEvents = operationsMap[category];
 
             if (
-              !operationsMap ||
-              typeof operationsMap !== "object" ||
-              !Array.isArray(operationsMap[category]) ||
-              !operationsMap[category].includes(event)
-            ) {
+              !Array.isArray(categoryEvents) ||
+              !categoryEvents.includes(event)
+            )
               continue;
-            }
 
-            const include_data =
-              (webhook.include_data && webhook.include_data.length) || false;
+            const includeData =
+              Array.isArray(webhook.include_data) &&
+              webhook.include_data.length > 0;
 
             const payload = await prepareWebhookData(
               event,
               data,
-              include_data,
+              includeData,
               webhook
             );
-
-            // let payload = {};
 
             await processConsumer(webhook, payload);
           }

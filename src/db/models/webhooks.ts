@@ -1,18 +1,4 @@
 import { Schema, model } from "mongoose";
-const entityInfo = new Schema({
-  entity_id: {
-    type: Schema.Types.ObjectId,
-    required: false,
-    index: true,
-  },
-  type: {
-    type: String,
-    required: false,
-  },
-  operations: {
-    type: Schema.Types.Mixed,
-  },
-});
 
 const webhookData = new Schema(
   {
@@ -20,9 +6,11 @@ const webhookData = new Schema(
       type: String,
       required: true,
     },
+
     status: {
       type: String,
-      required: false,
+      enum: ["ACTIVE", "INACTIVE", "ARCHIVED"],
+      default: "ACTIVE",
     },
     verifier_token: {
       type: String,
@@ -33,15 +21,33 @@ const webhookData = new Schema(
       required: true,
       index: true,
     },
+
     app_id: {
       type: Schema.Types.ObjectId,
+      required: true,
       index: true,
     },
-    events: [entityInfo],
+
+    events: {
+      document_events: {
+        type: [String],
+        default: [],
+      },
+      template_events: {
+        type: [String],
+        default: [],
+      },
+      recipientEvents: {
+        type: [String],
+        default: [],
+      },
+    },
+
     enable_include_data: {
       type: Boolean,
       required: false,
     },
+
     include_data: {
       type: [String],
       required: false,
@@ -55,4 +61,4 @@ const webhookData = new Schema(
   }
 );
 
-export const WebhookModel = model("webhooks", webhookData);
+export const WebhooksModel = model("webhooks", webhookData);

@@ -29,6 +29,7 @@ export async function prepareWebhookData(
     payload = {
       ...payload,
       ...data,
+      ...document,
     };
   } else if (TEMPLATE_EVENTS.includes(event)) {
     const template_id = data.template_id;
