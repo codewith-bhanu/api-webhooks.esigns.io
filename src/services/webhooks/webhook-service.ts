@@ -31,11 +31,7 @@ export async function startWebhookDispatcher() {
       autoDelete: false,
     });
 
-    const categories = [
-      "document_events",
-      "recipient_events",
-      "template_events",
-    ];
+    const categories = ["document_events", "template_events", "contact_events"];
 
     for (const category of categories) {
       await setupQueueAndConsumer(channel, category);

@@ -37,7 +37,7 @@ const webhookData = new Schema(
         type: [String],
         default: [],
       },
-      recipientEvents: {
+      contact_events: {
         type: [String],
         default: [],
       },

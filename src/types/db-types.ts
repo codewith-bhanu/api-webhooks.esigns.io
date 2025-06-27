@@ -3,7 +3,7 @@ import { Types } from "mongoose";
 export type WebhookEventCategory =
   | "document_events"
   | "template_events"
-  | "recipient_events";
+  | "contact_events";
 
 export interface IWebhook {
   _id?: Types.ObjectId;

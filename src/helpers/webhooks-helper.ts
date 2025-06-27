@@ -1,8 +1,9 @@
 import {
+  CONTACT_EVENTS,
   DOCUMENT_EVENTS,
-  RECIPIENT_EVENTS,
   TEMPLATE_EVENTS,
 } from "../constants/webhook-events";
+import { getContactById } from "../services/database/contact-service";
 import { getDocumentById } from "../services/database/document-service";
 import { getTemplateById } from "../services/database/template-service";
 
@@ -15,7 +16,7 @@ export async function prepareWebhookData(
 ) {
   let payload: any = {};
 
-  if (DOCUMENT_EVENTS.includes(event) || RECIPIENT_EVENTS.includes(event)) {
+  if (DOCUMENT_EVENTS.includes(event)) {
     const docId = data.document_id;
 
     const document: any = await getDocumentById(docId);
@@ -39,6 +40,15 @@ export async function prepareWebhookData(
     payload = {
       ...template,
       ...data,
+    };
+  } else if (CONTACT_EVENTS.includes(event)) {
+    const contactId = data.contact_id;
+
+    const contact: any = await getContactById(contactId);
+
+    payload = {
+      ...data,
+      ...(contact && { contact }),
     };
   }
 }
