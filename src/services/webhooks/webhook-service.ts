@@ -108,21 +108,57 @@ async function setupQueueAndConsumer(channel: any, category: string) {
   }
 }
 
-async function processConsumer(webhook: IWebhook, payload: any) {
-  try {
-    const resp = await axios.post(webhook.url, payload, {
-      headers: { Authorization: webhook.verifier_token || "" },
-      timeout: 5000,
-    });
+// TODO: Review and optimize retry logic
+async function processConsumer(
+  webhook: IWebhook,
+  payload: any,
+  maxRetries = 3
+) {
+  let attempt = 0;
+  let delivered = false;
 
-    if (![200, 201].includes(resp.status)) {
-      throw new BadRequestException(
-        `[Webhook] Failed to deliver to ${webhook.url}: ${resp.status}`
+  while (attempt < maxRetries && !delivered) {
+    try {
+      attempt++;
+
+      const resp = await axios.post(webhook.url, payload, {
+        headers: { Authorization: webhook.verifier_token || "" },
+        timeout: 5000,
+      });
+
+      if (![200, 201].includes(resp.status)) {
+        throw new BadRequestException(
+          `[Webhook] Failed with status ${resp.status}`
+        );
+      }
+
+      console.log(
+        `[Webhook] Delivered to ${webhook.url} successfully on attempt ${attempt}`
       );
-    }
+      delivered = true;
+    } catch (err: any) {
+      console.error(
+        `[Webhook] Attempt ${attempt} failed for ${webhook.url}: ${err.message}`
+      );
 
-    console.log(`[Webhook] delivered to ${webhook.url} successfully`);
-  } catch (err) {
-    throw err;
+      // Wait before next retry (simple backoff: 2 seconds)
+      if (attempt < maxRetries) {
+        await delay(2000);
+      } else {
+        console.error(
+          `[Webhook] Failed after ${maxRetries} attempts for ${webhook.url}`
+        );
+      }
+    }
   }
+
+  // TODO: Log the error into DB if required
+  if (!delivered) {
+    console.error(`[Webhook] Permanently failed delivery for ${webhook.url}`);
+  }
+}
+
+// Helper function for delay
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }

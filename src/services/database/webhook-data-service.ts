@@ -1,10 +1,10 @@
 import { WebhooksModel } from "../../db/models/webhooks";
 
-export async function getWebhooksByCompanyId(company_id: any) {
+export async function getWebhooksByCompanyId(company_id: string) {
   return await WebhooksModel.find({ company_id }).lean();
 }
 
-export async function getWebhookById(id: any) {
+export async function getWebhookById(id: string) {
   return await WebhooksModel.findById(id).lean();
 }
 

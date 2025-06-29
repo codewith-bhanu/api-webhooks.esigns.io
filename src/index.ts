@@ -16,6 +16,7 @@ import { validate } from "./middlewares/validations/validate.ts";
 import { vEnvSchema } from "./middlewares/validations/schemas/env-schema.ts";
 
 import router from "./routes/webhook-router.ts";
+import { logger } from "hono/logger";
 
 const app = new Hono().basePath(config.app.api_version);
 
@@ -30,6 +31,8 @@ app.use(
     credentials: true,
   })
 );
+
+app.use(logger())
 
 // Validate environment variables
 validate(vEnvSchema, process.env);

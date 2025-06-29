@@ -16,7 +16,6 @@ export async function prepareWebhookData(
 ) {
   let payload: any = { event, ...data };
 
-
   if (DOCUMENT_EVENTS.includes(event)) {
     const docId = data.document_id;
 
@@ -38,6 +37,7 @@ export async function prepareWebhookData(
     const template = await getTemplateById(template_id);
 
     payload = {
+      ...payload,
       ...template,
     };
   } else if (CONTACT_EVENTS.includes(event)) {
